@@ -76,6 +76,10 @@ void handle_client(int __client_socket)
             break;
         }
         printf("Recieved: %s\n", buffer);
+        std::string message(buffer, valread);
+
+        shared_struct.message_queue.push(message);
+
 
         send(__client_socket, buffer, valread, 0);
         memset(buffer, 0, sizeof(buffer));

@@ -5,6 +5,17 @@
 
 #include "net.cpp"
 
+void worker_thread() {
+    while(true) {
+        std::string message = shared_struct.message_queue.pop();
+        printf("Processing Message: %s\n", message.data());
+
+        std::this_thread::sleep_for(std::chrono::seconds(1));
+
+    }
+
+}
+
 int main(int argc, char **argv)
 {
 
@@ -13,22 +24,25 @@ int main(int argc, char **argv)
     int c;
     // Arg Vars
     char *savefile = NULL;
+    int num_worker_threads = 1;
 
 
     opterr = 0;
 
-    while ((c = getopt(argc, argv, "s:")) != -1)
+    while ((c = getopt(argc, argv, "s:c:")) != -1)
     {
         switch (c)
         {
             case 's':
                 savefile = optarg;
                 break;
-
+            case 'c':
+                num_worker_threads = std::stoi(optarg);
+                break;
         }
     }
     // Write read args
-    printf("sarg = %s\n", savefile);
+    printf("sarg = %s carg = %d\n", savefile, num_worker_threads);
     // Write unread args
     for(index = optind; index < argc; index++)
         printf("Non-option argument %s\n", argv[index]);
@@ -36,6 +50,13 @@ int main(int argc, char **argv)
     if(savefile == NULL) {
         abort();
     }
+
+    // Initialize worker thread(s)
+    std::vector<std::thread> workers;
+    for (int i = 0; i < num_worker_threads; i++) {
+        workers.emplace_back(worker_thread);
+    }
+
 
     // Initialize server socket
     int server_fd = create_socket(8080);

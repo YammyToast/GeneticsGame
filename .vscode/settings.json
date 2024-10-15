@@ -23,6 +23,7 @@
         "*.rex": "rexx",
         "*.rexx": "rexx",
         "cstring": "cpp",
-        "condition_variable": "cpp"
+        "condition_variable": "cpp",
+        "system_error": "cpp"
     }
 }
