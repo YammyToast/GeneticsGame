@@ -1,2 +1,0 @@
-/home/yammy/Code/GeneticsGame/build/CMakeFiles/edit_cache.dir
-/home/yammy/Code/GeneticsGame/build/CMakeFiles/rebuild_cache.dir
