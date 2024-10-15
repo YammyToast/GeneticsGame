@@ -22,6 +22,7 @@
         "*.bms": "hlasm",
         "*.rex": "rexx",
         "*.rexx": "rexx",
-        "cstring": "cpp"
+        "cstring": "cpp",
+        "condition_variable": "cpp"
     }
 }

@@ -7,6 +7,7 @@
 
 int main(int argc, char **argv)
 {
+
     // Getopt Vars
     int index;
     int c;
