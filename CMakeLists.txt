@@ -1,10 +1,17 @@
-cmake_minimum_required(VERSION 3.10)
-set(CMAKE_CXX_STANDARD 11)
+cmake_minimum_required(VERSION 3.12)
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
+project(
+    GeneticsGame
+    VERSION 0.0.1
+    DESCRIPTION "GeneticsGame..."
+    LANGUAGES CXX
+)
 
-project(GeneticsGame)
 
-include_directories(/include)
+add_subdirectory(include)
+add_subdirectory(src)
 
-add_executable(GeneticsGame src/main.cpp)
+# include(GTest)
+# add_executable(GeneticsGame src/main.cpp)

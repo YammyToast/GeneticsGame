@@ -36,3 +36,6 @@
 # Project Ignores
 # ===========================
 /build/*
+/include/*
+
+.vscode
