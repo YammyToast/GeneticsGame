@@ -2,17 +2,30 @@
 #include <stdio.h>
 #include <thread>
 #include <cstdio>
+#include <signal.h>
+#include <atomic>
 
 #include "spdlog/spdlog.h"
+#include "spdlog/sinks/stdout_color_sinks.h"
+#include "spdlog/sinks/basic_file_sink.h"
 
 #include "net.cpp"
+
+std::atomic<bool> interrupt_flag(false);
+
+void sig_interrupt(int __signum) {
+    interrupt_flag = true;
+    shared_struct.logger->info("Exiting Gracefully");
+    shared_struct.logger->flush();
+    exit(0);
+}
 
 void worker_thread()
 {
     while (true)
     {
         std::string message = shared_struct.message_queue.pop();
-        printf("Processing Message: %s\n", message.data());
+        shared_struct.logger->debug("Processing Message: {}", message.data());
 
         std::this_thread::sleep_for(std::chrono::seconds(1));
     }
@@ -20,42 +33,56 @@ void worker_thread()
 
 int main(int argc, char **argv)
 {
-    
-    spdlog::info("Welcome to SpdLog!");
+    signal(SIGINT, sig_interrupt);
 
     // Getopt Vars
     int index;
     int c;
     // Arg Vars
-    char *savefile = NULL;
+    bool debug_flag = false;
+    std::string savefile = "player";
     int num_worker_threads = 1;
+    int port = 8080;
 
     opterr = 0;
 
-    while ((c = getopt(argc, argv, "s:c:")) != -1)
+    while ((c = getopt(argc, argv, "ds:c:p:")) != -1)
     {
         switch (c)
         {
+        case 'd':
+            debug_flag = true;
+            break;
         case 's':
-            savefile = optarg;
+            savefile.assign(optarg);
             break;
         case 'c':
             num_worker_threads = std::stoi(optarg);
             break;
+        case 'p':
+            port = std::stoi(optarg);
+            break;
         }
     }
-    // Write read args
-    // write_log(sprintf("SaveArg = %s, WorkerThreads(carg) = %s", savefile, num_worker_threads));
-    // printf("sarg = %s carg = %d\n", savefile, num_worker_threads);
+
+
+    // Logger
+    auto console_sink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
+    auto file_sink = std::make_shared<spdlog::sinks::basic_file_sink_mt>("logs/session-log.log", false);
+
+    spdlog::logger logger("session_logger", {console_sink, file_sink});
+    shared_struct.logger = std::make_shared<spdlog::logger>(logger);
+
+    if (debug_flag == true)
+    {
+        shared_struct.logger->set_level(spdlog::level::debug);
+    }
+    shared_struct.logger->set_pattern("[%H:%M:%S] [%^%l%$] %v");
+    shared_struct.logger->debug("Debug logging on");
 
     // Write unread args
     for (index = optind; index < argc; index++)
-        printf("Non-option argument %s\n", argv[index]);
-
-    if (savefile == NULL)
-    {
-        abort();
-    }
+        shared_struct.logger->warn("Non-option argument: {}", argv[index]);
 
     // Initialize worker thread(s)
     std::vector<std::thread> workers;
@@ -65,10 +92,11 @@ int main(int argc, char **argv)
     }
 
     // Initialize server socket
-    int server_fd = create_socket(8080);
+    int server_fd = create_socket(port);
 
+    
     // Lifetime Loop
-    while (true)
+    while (!interrupt_flag)
     {
         int client_socket = accept_client(server_fd);
         // if client is valid
@@ -77,6 +105,8 @@ int main(int argc, char **argv)
             std::thread client_thread(handle_client, client_socket);
             client_thread.detach(); // Lose Handler? Dispatches thread to keep running separately from the current thread.
         }
+        std::this_thread::sleep_for(std::chrono::seconds(1));
+
     }
 
     close(server_fd);

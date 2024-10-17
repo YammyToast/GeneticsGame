@@ -18,6 +18,7 @@ int create_socket(int __port)
     server_fd = socket(AF_INET, SOCK_STREAM, 0);
     if (server_fd == 0)
     {
+        shared_struct.logger->error("Socket failed to open");
         perror("Socket failed to open");
         exit(EXIT_FAILURE);
     }
@@ -31,19 +32,19 @@ int create_socket(int __port)
     // bind socket and check for error
     if (bind(server_fd, (struct sockaddr *)&address, sizeof(address)) < 0)
     {
-        perror("Could not bind socket");
+        shared_struct.logger->error("Could not bind socket");
         close(server_fd);
         exit(EXIT_FAILURE);
     }
 
     if (listen(server_fd, 5) < 0)
     {
-        perror("Error listening on server file descriptor");
+        shared_struct.logger->error("Error listening on server file descriptor");
         close(server_fd);
         exit(EXIT_FAILURE);
     }
 
-    printf("Server started on port %d\n", __port);
+    shared_struct.logger->info("Server started on port: {}", __port);
     return server_fd;
 }
 
@@ -55,10 +56,10 @@ int accept_client(int __server_fd)
 
     if (client_socket < 0)
     {
-        perror("Error accepting client\n");
+        shared_struct.logger->error("Error accept client");
         return -1;
     }
-    printf("New client connected: %d\n", client_socket);
+    shared_struct.logger->info("New client connected: {}", client_socket);
     return client_socket;
 }
 
@@ -71,15 +72,14 @@ void handle_client(int __client_socket)
         // if nothing is read dc the client
         if (valread <= 0)
         {
-            printf("Client disconnected.\n");
+            shared_struct.logger->warn("Client disconnected: {}", __client_socket);
             close(__client_socket);
             break;
         }
-        printf("Recieved: %s\n", buffer);
+        shared_struct.logger->debug("Received: {}", buffer);
         std::string message(buffer, valread);
 
         shared_struct.message_queue.push(message);
-
 
         send(__client_socket, buffer, valread, 0);
         memset(buffer, 0, sizeof(buffer));

@@ -11,6 +11,7 @@ struct
 {   
     std::vector<int> client_fds;
     MessageQueue<std::string> message_queue;
+    std::shared_ptr<spdlog::logger> logger;
 } shared_struct;
 
 #endif
