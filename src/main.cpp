@@ -3,6 +3,8 @@
 #include <thread>
 #include <cstdio>
 
+#include "spdlog/spdlog.h"
+
 #include "net.cpp"
 
 void worker_thread()
@@ -18,6 +20,8 @@ void worker_thread()
 
 int main(int argc, char **argv)
 {
+    
+    spdlog::info("Welcome to SpdLog!");
 
     // Getopt Vars
     int index;

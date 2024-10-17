@@ -9,9 +9,16 @@ project(
     LANGUAGES CXX
 )
 
-
-add_subdirectory(include)
 add_subdirectory(src)
+add_subdirectory(tests)
 
-# include(GTest)
-# add_executable(GeneticsGame src/main.cpp)
+include_directories(${CMAKE_SOURCE_DIR}/include)
+link_directories(${CMAKE_SOURCE_DIR}/lib)
+
+
+add_executable(GeneticsGame src/main.cpp)
+
+target_link_libraries(GeneticsGame PRIVATE spdlog)
+
+
+
