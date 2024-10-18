@@ -1,4 +1,5 @@
 #ifndef _NET_CPP_
+#define _NET_CPP_
 
 #include <iostream>
 #include <sys/socket.h>
@@ -6,8 +7,16 @@
 #include <unistd.h>
 #include <cstring>
 
+// #include <nlohmann/json.hpp>
+
 #include "net.h"
 #include "shared.h"
+
+
+// ==================================================
+// SOCKET STUFF
+// ==================================================
+
 
 int create_socket(int __port)
 {
@@ -87,5 +96,7 @@ void handle_client(int __client_socket)
 
     }
 }
+
+
 
 #endif

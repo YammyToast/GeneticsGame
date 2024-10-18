@@ -1,3 +1,5 @@
+
+
 #include <unistd.h>
 #include <stdio.h>
 #include <thread>
@@ -10,10 +12,13 @@
 #include "spdlog/sinks/basic_file_sink.h"
 
 #include "net.cpp"
+#include "messages.cpp"
+#include "shared.h"
 
 std::atomic<bool> interrupt_flag(false);
 
-void sig_interrupt(int __signum) {
+void sig_interrupt(int __signum)
+{
     interrupt_flag = true;
     shared_struct.logger->info("Exiting Gracefully");
     shared_struct.logger->flush();
@@ -26,6 +31,10 @@ void worker_thread()
     {
         std::string message = shared_struct.message_queue.pop();
         shared_struct.logger->debug("Processing Message: {}", message.data());
+        if (verify_data_is_json(message) == false)
+        {
+            return;
+        }
 
         std::this_thread::sleep_for(std::chrono::seconds(1));
     }
@@ -65,7 +74,6 @@ int main(int argc, char **argv)
         }
     }
 
-
     // Logger
     auto console_sink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
     auto file_sink = std::make_shared<spdlog::sinks::basic_file_sink_mt>("logs/session-log.log", false);
@@ -94,7 +102,6 @@ int main(int argc, char **argv)
     // Initialize server socket
     int server_fd = create_socket(port);
 
-    
     // Lifetime Loop
     while (!interrupt_flag)
     {
@@ -106,7 +113,6 @@ int main(int argc, char **argv)
             client_thread.detach(); // Lose Handler? Dispatches thread to keep running separately from the current thread.
         }
         std::this_thread::sleep_for(std::chrono::seconds(1));
-
     }
 
     close(server_fd);
